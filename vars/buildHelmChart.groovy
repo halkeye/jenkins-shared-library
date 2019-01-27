@@ -18,7 +18,8 @@ def call(body) {
         env.GIT_PREVIOUS_COMMIT = scmVars.GIT_PREVIOUS_COMMIT
         env.GIT_URL = scmVars.GIT_URL
       }
-      name = readYaml('chart/Chart.yaml').get('name')
+      sh("find") // FIXME: debug only
+      name = readYaml('./chart/Chart.yaml').get('name')
       sh("mv chart ${name}")
 
       stage('Build') {
