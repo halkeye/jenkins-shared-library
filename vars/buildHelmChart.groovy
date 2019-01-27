@@ -31,14 +31,16 @@ def call(body) {
       }
 
       lock('helm-charts') {
-        github = credentials('github-halkeye')
         stage('Checkout halkeye/helm-charts') {
           withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
-            unstash(name:'helm-packages')
             sh 'git clone -b gh-pages https://${github_usr}:${github_psw}@github.com/halkeye/helm-charts.git helm-charts'
             docker.image('dtzar/helm-kubectl').inside {
               dir('helm-charts') {
+                sh('find') // DEBUG
+                unstash(name:'helm-packages')
+                sh('find') // DEBUG
                 sh 'helm repo index ./'
+                sh('find') // DEBUG
               }
             }
           }
