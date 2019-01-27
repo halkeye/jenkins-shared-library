@@ -36,11 +36,8 @@ def call(body) {
             sh 'git clone -b gh-pages https://${github_usr}:${github_psw}@github.com/halkeye/helm-charts.git helm-charts'
             docker.image('dtzar/helm-kubectl').inside {
               dir('helm-charts') {
-                sh('find') // DEBUG
                 unstash(name:'helm-packages')
-                sh('find') // DEBUG
                 sh 'helm repo index ./'
-                sh('find') // DEBUG
               }
             }
           }
