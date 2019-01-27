@@ -19,7 +19,7 @@ def call(body) {
         env.GIT_URL = scmVars.GIT_URL
       }
       sh("find") // FIXME: debug only
-      name = readYaml('./chart/Chart.yaml').get('name')
+      name = readYaml(file: './chart/Chart.yaml').get('name')
       sh("mv chart ${name}")
 
       stage('Build') {
