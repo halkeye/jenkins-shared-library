@@ -35,7 +35,7 @@ def call(body) {
             sh 'git clone -b gh-pages https://${github_usr}:${github_psw}@github.com/halkeye/helm-charts.git helm-charts'
             docker.image('dtzar/helm-kubectl').inside {
               dir('helm-charts') {
-                sh "mkdir ${name}"
+                sh "mkdir -p ${name}"
                 sh "mv ../${name}*.tgz ${name}"
                 sh 'helm repo index ./'
               }
