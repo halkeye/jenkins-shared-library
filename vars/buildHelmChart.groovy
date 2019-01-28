@@ -27,7 +27,6 @@ def call(body) {
           sh "helm lint ${name}"
           sh "helm package ${name}"
         }
-        stash(name:'helm-packages', allowEmpty: false, includes: '*.tgz')
       }
 
       lock('helm-charts') {
@@ -36,7 +35,8 @@ def call(body) {
             sh 'git clone -b gh-pages https://${github_usr}:${github_psw}@github.com/halkeye/helm-charts.git helm-charts'
             docker.image('dtzar/helm-kubectl').inside {
               dir('helm-charts') {
-                unstash(name:'helm-packages')
+                sh "mkdir ${name}"
+                sh "mv ../${name}*.tgz ${name}"
                 sh 'helm repo index ./'
               }
             }
@@ -46,7 +46,7 @@ def call(body) {
           dir('helm-charts') {
             sh 'git config --global user.email "jenkins@gavinmogan.com"'
             sh 'git config --global user.name "Jenkins"'
-            sh 'git add index.yaml freshrss'
+            sh "git add index.yaml ${name}"
             sh 'git commit -m "Adding package"'
           }
         }
