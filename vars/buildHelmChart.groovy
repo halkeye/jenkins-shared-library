@@ -37,7 +37,9 @@ def call(body) {
               dir('helm-charts') {
                 sh "mkdir -p ${name}"
                 sh "mv ../${name}*.tgz ${name}"
+                sh 'helm plugin install https://github.com/halkeye/helm-repo-html'
                 sh 'helm repo index ./'
+                sh 'helm repo-html'
               }
             }
           }
@@ -46,7 +48,7 @@ def call(body) {
           dir('helm-charts') {
             sh 'git config --global user.email "jenkins@gavinmogan.com"'
             sh 'git config --global user.name "Jenkins"'
-            sh "git add index.yaml ${name}"
+            sh "git add index.yaml index.html ${name}"
             sh 'git commit -m "Adding package"'
           }
         }
