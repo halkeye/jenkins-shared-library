@@ -35,12 +35,14 @@ def call(body) {
             sh 'git clone -b gh-pages https://${github_usr}:${github_psw}@github.com/halkeye/helm-charts.git helm-charts'
             docker.image('dtzar/helm-kubectl').inside {
               dir('helm-charts') {
-                sh "mkdir -p ${name}"
-                sh "mv ../${name}*.tgz ${name}"
-                sh """mkdir -p "$HELM_HOME/plugins""""
-                sh 'helm plugin install https://github.com/halkeye/helm-repo-html'
-                sh 'helm repo index ./'
-                sh 'helm repo-html'
+                sh """
+                mkdir -p ${name}
+                mv ../${name}*.tgz ${name}
+                mkdir -p "$HELM_HOME/plugins"
+                helm plugin install https://github.com/halkeye/helm-repo-html
+                helm repo index ./
+                helm repo-html
+                """
               }
             }
           }
