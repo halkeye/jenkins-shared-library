@@ -37,6 +37,7 @@ def call(body) {
               dir('helm-charts') {
                 sh "mkdir -p ${name}"
                 sh "mv ../${name}*.tgz ${name}"
+                sh """mkdir -p "$HELM_HOME/plugins""""
                 sh 'helm plugin install https://github.com/halkeye/helm-repo-html'
                 sh 'helm repo index ./'
                 sh 'helm repo-html'
