@@ -38,7 +38,7 @@ def call(body) {
                 sh """
                 mkdir -p ${name}
                 mv ../${name}*.tgz ${name}
-                mkdir -p "\$HELM_HOME/plugins"
+                mkdir -p "\$(helm home)/plugins"
                 helm plugin install https://github.com/halkeye/helm-repo-html
                 helm repo index ./
                 helm repo-html
