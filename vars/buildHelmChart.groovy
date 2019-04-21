@@ -39,6 +39,7 @@ def call(body) {
                 sh 'git config --global user.name "Jenkins"'
                 sh 'git config --global push.default simple'
                 sh "git tag -a -m 'v${version}' v${version}"
+                sh 'git remote -v'
                 sh "git push --tags"
               }
             }
