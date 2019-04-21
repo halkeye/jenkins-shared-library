@@ -18,6 +18,7 @@ def call(body) {
           env.BRANCH_NAME = scmVars.GIT_BRANCH
           env.GIT_PREVIOUS_COMMIT = scmVars.GIT_PREVIOUS_COMMIT
           env.GIT_URL = scmVars.GIT_URL
+          echo(scmVars)
         }
         name = readYaml(file: './chart/Chart.yaml').get('name')
         version = readYaml(file: './chart/Chart.yaml').get('version')
