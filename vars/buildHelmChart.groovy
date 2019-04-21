@@ -19,6 +19,7 @@ def call(body) {
         env.GIT_URL = scmVars.GIT_URL
       }
       name = readYaml(file: './chart/Chart.yaml').get('name')
+      version = readYaml(file: './chart/Chart.yaml').get('version')
       sh("mv chart ${name}")
 
       stage('Build') {
@@ -26,6 +27,20 @@ def call(body) {
           sh "helm init -c"
           sh "helm lint ${name}"
           sh "helm package ${name}"
+        }
+      }
+
+      if (env.BRANCH_NAME == "master") {
+        stage('Tag') {
+          withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
+            dir('helm-charts') {
+              sh 'git config --global user.email "jenkins@gavinmogan.com"'
+              sh 'git config --global user.name "Jenkins"'
+              sh 'git config --global push.default simple'
+              sh "git tag -a -m "v${version}" v${version}"
+              sh "git push --tags"
+            }
+          }
         }
       }
 
