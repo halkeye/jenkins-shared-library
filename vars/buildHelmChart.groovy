@@ -18,7 +18,6 @@ def call(body) {
           env.BRANCH_NAME = scmVars.GIT_BRANCH
           env.GIT_PREVIOUS_COMMIT = scmVars.GIT_PREVIOUS_COMMIT
           env.GIT_URL = scmVars.GIT_URL
-          echo(scmVars)
         }
         name = readYaml(file: './chart/Chart.yaml').get('name')
         version = readYaml(file: './chart/Chart.yaml').get('version')
@@ -40,8 +39,11 @@ def call(body) {
                 sh 'git config --global user.name "Jenkins"'
                 sh 'git config --global push.default simple'
                 sh "git tag -a -m 'v${version}' v${version}"
-                sh 'git remote -v'
-                sh "git push --tags"
+
+                newUrl = env.GIT_URL.replace("https://", "https://${github_usr}:${github_psw}@");
+                sh "git remote add tags ${newUrl}"
+                sh "git push tags v${version}"
+                sh "git remote remove tags"
               }
             }
           }
