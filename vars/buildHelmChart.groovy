@@ -34,7 +34,7 @@ def call(body) {
         if (env.BRANCH_NAME == "master") {
           stage('Tag') {
             withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
-              dir($name) {
+              dir(name) {
                 sh 'git config --global user.email "jenkins@gavinmogan.com"'
                 sh 'git config --global user.name "Jenkins"'
                 sh 'git config --global push.default simple'
