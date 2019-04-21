@@ -89,16 +89,16 @@ def call(body) {
         try {
           // TODO map and join
           email  = readYaml(file: './chart/Chart.yaml').get('maintainers')[0].get('email')
-        } catch (error) {
+        } catch (getEmailsErr) {
         }
         emailext(
           attachLog: true,
           recipientProviders: [developers()],
-          body: "Build failed (see ${env.BUILD_URL}): ${error}",
+          body: "Build failed (see ${env.BUILD_URL}): ${err}",
           subject: "[JENKINS] ${env.JOB_NAME} failed",
           to: emails
         )
-        throw error
+        throw err
       }
     }
   }
