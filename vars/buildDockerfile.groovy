@@ -22,7 +22,9 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye") {
         steps {
           sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${registry}"
           sh "docker tag ${registry}${imageName} ${registry}${imageName}:master"
+          sh "docker tag ${registry}${imageName} ${registry}${imageName}:${GIT_COMMIT}"
           sh "docker push ${registry}${imageName}:master"
+          sh "docker push ${registry}${imageName}:${GIT_COMMIT}"
           sh "docker push ${registry}${imageName}"
         }
       }
