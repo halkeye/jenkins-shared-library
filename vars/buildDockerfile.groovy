@@ -13,7 +13,7 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye") {
         environment { DOCKER = credentials("${credential}") }
         steps {
           sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${registry}"
-          sh "docker pull ${registry}${imageName}"
+          sh "docker pull ${registry}${imageName} || true"
           sh "docker build -t ${registry}${imageName} ."
         }
       }
