@@ -24,7 +24,7 @@ def call(body) {
         sh("mv chart ${name}")
 
         stage('Build') {
-          docker.image('dtzar/helm-kubectl').inside {
+          docker.image('dtzar/helm-kubectl:2.16.1').inside {
             sh "helm init -c"
             sh "helm lint ${name}"
             sh "helm package ${name}"
@@ -53,7 +53,7 @@ def call(body) {
           stage('Checkout halkeye/helm-charts') {
             withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
               sh 'git clone -b gh-pages https://${github_usr}:${github_psw}@github.com/halkeye/helm-charts.git helm-charts'
-              docker.image('dtzar/helm-kubectl').inside {
+              docker.image('dtzar/helm-kubectl:2.16.1').inside {
                 dir('helm-charts') {
                   sh """
                   mkdir -p ${name}
