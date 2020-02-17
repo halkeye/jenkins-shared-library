@@ -10,6 +10,7 @@ def call(body) {
   ansiColor('xterm') {
     timeout(10) {
       try {
+        env.HOME = "${WORKSPACE}"
         dir('chart') {
           def scmVars = checkout scm
           env.GIT_COMMIT = scmVars.GIT_COMMIT
