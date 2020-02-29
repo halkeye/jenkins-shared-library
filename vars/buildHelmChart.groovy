@@ -10,6 +10,8 @@ def call(body) {
   ansiColor('xterm') {
     timeout(10) {
       try {
+        cleanWs()
+
         env.HOME = "${WORKSPACE}"
         dir('chart') {
           def scmVars = checkout scm
