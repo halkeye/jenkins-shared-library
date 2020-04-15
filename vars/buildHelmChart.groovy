@@ -30,7 +30,7 @@ def call(body) {
           docker.image('dtzar/helm-kubectl:2.16.1').inside {
             sh "helm init -c"
             sh "helm lint ${name}"
-            sh "wget -O - https://github.com/norwoodj/helm-docs/releases/download/v0.8.0/helm-docs_0.8.0_Linux_x86_64.tar.gz | tar xvzf - helm-docs"
+            sh "wget -O - https://github.com/norwoodj/helm-docs/releases/download/v0.12.0/helm-docs_0.12.0_Linux_x86_64.tar.gz | tar xvzf - helm-docs"
             dir(name) {
               sh "../helm-docs"
             }
