@@ -60,6 +60,20 @@ def call(body) {
           stage('Checkout halkeye/helm-charts') {
             withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
               sh 'git clone -b gh-pages https://${github_usr}:${github_psw}@github.com/halkeye/helm-charts.git helm-charts'
+            }
+          }
+          stage('Fix timestamps') {
+            // Blatently taken from https://stackoverflow.com/a/55609950
+            sh '''
+              git ls-tree -r --name-only HEAD | while read filename; do
+                unixtime=$(git log -1 --format="%at" -- "${filename}")
+                touchtime=$(date -d @$unixtime +'%Y%m%d%H%M.%S')
+                touch -t ${touchtime} "${filename}"
+              done
+            '''
+          }
+
+          stage('Build Index') {
               docker.image('dtzar/helm-kubectl:2.16.1').inside {
                 dir('helm-charts') {
                   sh """
