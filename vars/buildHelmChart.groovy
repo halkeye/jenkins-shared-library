@@ -74,17 +74,16 @@ def call(body) {
           }
 
           stage('Build Index') {
-              docker.image('dtzar/helm-kubectl:2.16.1').inside {
-                dir('helm-charts') {
-                  sh """
+            docker.image('dtzar/helm-kubectl:2.16.1').inside {
+              dir('helm-charts') {
+                sh """
                   mkdir -p ${name}
-                  mv ../${name}*.tgz ${name}
-                  mkdir -p "\$(helm home)/plugins"
+                mv ../${name}*.tgz ${name}
+                mkdir -p "\$(helm home)/plugins"
                   helm plugin install https://github.com/halkeye/helm-repo-html
                   helm repo index ./
                   helm repo-html
                   """
-                }
               }
             }
           }
