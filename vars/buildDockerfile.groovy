@@ -24,14 +24,14 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye") {
           sh """
             docker build \
               -t ${registry}${imageName} \
-              -l "org.opencontainers.image.source=${GIT_SCM_URL}" \
-              -l "org.label-schema.vcs-url=${GIT_SCM_URL}" \
-              -l "org.opencontainers.image.url==${SCM_URI}" \
-              -l "org.label-schema.url=${SCM_URI}" \
-              -l "org.opencontainers.image.revision=${GIT_COMMIT_REV}" \
-              -l "org.label-schema.vcs-ref=${GIT_COMMIT_REV}" \
-              -l "org.opencontainers.created=${BUILD_DATE}" \
-              -l "org.label-schema.build-date=${BUILD_DATE}" \
+              --label "org.opencontainers.image.source=${GIT_SCM_URL}" \
+              --label "org.label-schema.vcs-url=${GIT_SCM_URL}" \
+              --label "org.opencontainers.image.url==${SCM_URI}" \
+              --label "org.label-schema.url=${SCM_URI}" \
+              --label "org.opencontainers.image.revision=${GIT_COMMIT_REV}" \
+              --label "org.label-schema.vcs-ref=${GIT_COMMIT_REV}" \
+              --label "org.opencontainers.created=${BUILD_DATE}" \
+              --label "org.label-schema.build-date=${BUILD_DATE}" \
               .
           """
         }
