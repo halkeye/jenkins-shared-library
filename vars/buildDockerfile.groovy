@@ -23,7 +23,7 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye") {
           }
           sh """
             docker build \
-              -t ${registry}${imageName}
+              -t ${registry}${imageName} \
               -l "org.opencontainers.image.source=${GIT_SCM_URL}" \
               -l "org.label-schema.vcs-url=${GIT_SCM_URL}" \
               -l "org.opencontainers.image.url==${SCM_URI}" \
