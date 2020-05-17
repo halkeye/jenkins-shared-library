@@ -15,10 +15,12 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye") {
         steps {
           sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${registry}"
           sh "docker pull ${registry}${imageName} || true"
-          GIT_COMMIT_REV = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
-          GIT_SCM_URL = sh(returnStdout: true, script: "git remote show origin | grep 'Fetch URL' | awk '{print \$3}'").trim()
-          SCM_URI = GIT_SCM_URL.replace("git@github.com:", "https://github.com/");
-          BUILD_DATE = sh(returnStdout: true, script: "TZ=UTC date --rfc-3339=seconds | sed 's/ /T/'").trim()
+          script {
+            GIT_COMMIT_REV = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
+            GIT_SCM_URL = sh(returnStdout: true, script: "git remote show origin | grep 'Fetch URL' | awk '{print \$3}'").trim()
+            SCM_URI = GIT_SCM_URL.replace("git@github.com:", "https://github.com/");
+            BUILD_DATE = sh(returnStdout: true, script: "TZ=UTC date --rfc-3339=seconds | sed 's/ /T/'").trim()
+          }
           sh """
             docker build \
               -t ${registry}${imageName}
