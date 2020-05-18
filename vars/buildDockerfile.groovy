@@ -1,4 +1,4 @@
-def call(String imageName, Map config=[:], Closure body = null) {
+def call(String imageName, Map config=[:], Closure body = new Closure()) {
   if (!config.registry) {
     config.registry = ""
   }
@@ -80,15 +80,7 @@ def call(String imageName, Map config=[:], Closure body = null) {
           }
         }
       }
-      stage("Extra Steps") {
-        steps {
-          script {
-            if (body) {
-              body()
-            }
-          }
-        }
-      }
+      body()
     }
     post {
       failure {
