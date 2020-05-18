@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 def call(String imageName, Map config=[:], Closure body={}) {
   if (!config.registry) {
     config.registry = ""
@@ -80,7 +81,15 @@ def call(String imageName, Map config=[:], Closure body={}) {
           }
         }
       }
-      body()
+      stage("Extra Steps") {
+        steps {
+          script {
+            if (body) {
+              body()
+            }
+          }
+        }
+      }
     }
     post {
       failure {
