@@ -1,4 +1,11 @@
-def call(imageName, registry = "", credential = "dockerhub-halkeye", Closure body) {
+def call(String imageName, Map config=[:], Closure body = null) {
+  if (!config.registry) {
+    config.registry = ""
+  }
+  if (!config.credential) {
+    config.credential = "dockerhub-halkeye"
+  }
+
 
   pipeline {
     agent any
@@ -12,10 +19,10 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye", Closure bod
 
     stages {
       stage("Build") {
-        environment { DOCKER = credentials("${credential}") }
+        environment { DOCKER = credentials("${config.credential}") }
         steps {
-          sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${registry}"
-          sh "docker pull ${registry}${imageName} || true"
+          sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${config.registry}"
+          sh "docker pull ${config.registry}${imageName} || true"
           script {
             GIT_COMMIT_REV = sh(returnStdout: true, script: "git log -n 1 --pretty=format:'%h'").trim()
             GIT_SCM_URL = sh(returnStdout: true, script: "git remote show origin | grep 'Fetch URL' | awk '{print \$3}'").trim()
@@ -24,7 +31,7 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye", Closure bod
           }
           sh """
             docker build \
-              -t ${registry}${imageName} \
+              -t ${config.registry}${imageName} \
               --build-arg "GIT_COMMIT_REV=${GIT_COMMIT_REV}" \
               --build-arg "GIT_SCM_URL=${GIT_SCM_URL}" \
               --build-arg "BUILD_DATE=${BUILD_DATE}" \
@@ -42,14 +49,14 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye", Closure bod
       }
       stage("Deploy master as latest") {
         when { branch "master" }
-        environment { DOCKER = credentials("${credential}") }
+        environment { DOCKER = credentials("${config.credential}") }
         steps {
-          sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${registry}"
-          sh "docker tag ${registry}${imageName} ${registry}${imageName}:master"
-          sh "docker tag ${registry}${imageName} ${registry}${imageName}:${GIT_COMMIT}"
-          sh "docker push ${registry}${imageName}:master"
-          sh "docker push ${registry}${imageName}:${GIT_COMMIT}"
-          sh "docker push ${registry}${imageName}"
+          sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${config.registry}"
+          sh "docker tag ${config.registry}${imageName} ${config.registry}${imageName}:master"
+          sh "docker tag ${config.registry}${imageName} ${config.registry}${imageName}:${GIT_COMMIT}"
+          sh "docker push ${config.registry}${imageName}:master"
+          sh "docker push ${config.registry}${imageName}:${GIT_COMMIT}"
+          sh "docker push ${config.registry}${imageName}"
           script {
             if (currentBuild.description) {
               currentBuild.description = currentBuild.description + " / "
@@ -60,11 +67,11 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye", Closure bod
       }
       stage("Deploy tag as tag") {
         when { buildingTag() }
-        environment { DOCKER = credentials("${credential}") }
+        environment { DOCKER = credentials("${config.credential}") }
         steps {
-          sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${registry}"
-          sh "docker tag ${registry}${imageName} ${registry}${imageName}:${TAG_NAME}"
-          sh "docker push ${registry}${imageName}:${TAG_NAME}"
+          sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${config.registry}"
+          sh "docker tag ${config.registry}${imageName} ${config.registry}${imageName}:${TAG_NAME}"
+          sh "docker push ${config.registry}${imageName}:${TAG_NAME}"
           script {
             if (currentBuild.description) {
               currentBuild.description = currentBuild.description + " / "
