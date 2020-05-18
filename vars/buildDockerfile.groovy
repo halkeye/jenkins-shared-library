@@ -74,9 +74,12 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye", body = null
         }
       }
       stage("Extra Steps") {
-        when { body }
         steps {
-          body()
+          script {
+            if (body) {
+              body()
+            }
+          }
         }
       }
     }
