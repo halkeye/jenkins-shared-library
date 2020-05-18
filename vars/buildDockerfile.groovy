@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 def call(String imageName, Map config=[:], Closure body={}) {
   if (!config.registry) {
     config.registry = ""
