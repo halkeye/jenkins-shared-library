@@ -1,10 +1,4 @@
-def call(imageName, Map config=[:]) {
-  if (!config.registry) {
-    config.registry = ""
-  }
-  if (!config.credential) {
-    config.credential = "dockerhub-halkeye"
-  }
+def call(imageName, registry = "", credential = "dockerhub-halkeye", body = null) {
 
   pipeline {
     agent any
@@ -82,8 +76,8 @@ def call(imageName, Map config=[:]) {
       stage("Extra Steps") {
         steps {
           script {
-            if (config.body) {
-              config.body()
+            if (body) {
+              body()
             }
           }
         }
