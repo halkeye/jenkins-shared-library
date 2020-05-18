@@ -1,4 +1,4 @@
-def call(imageName, registry = "", credential = "dockerhub-halkeye", body = null) {
+def call(imageName, registry = "", credential = "dockerhub-halkeye", Closure body) {
 
   pipeline {
     agent any
