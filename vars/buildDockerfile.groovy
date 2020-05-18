@@ -1,4 +1,5 @@
-def call(imageName, registry = "", credential = "dockerhub-halkeye") {
+def call(imageName, registry = "", credential = "dockerhub-halkeye", body = null) {
+
   pipeline {
     agent any
 
@@ -70,6 +71,12 @@ def call(imageName, registry = "", credential = "dockerhub-halkeye") {
             }
             currentBuild.description = "${TAG_NAME}"
           }
+        }
+      }
+      stage("Extra Steps") {
+        when { body }
+        steps {
+          body()
         }
       }
     }
