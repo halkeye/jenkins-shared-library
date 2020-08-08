@@ -27,14 +27,8 @@ def call(String imageName, Map config=[:], Closure body={}) {
         }
         steps {
           script {
-            try {
-              writeFile(file: 'hadolint.json', text: sh(returnStdout: true, script: "/bin/hadolint --format json ${config.dockerfile}").trim())
-              recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
-            } catch (err) {
-              // don't care about errors
-              echo err.getMessage()
-              echo "Error detected, but we will continue."
-            }
+            writeFile(file: 'hadolint.json', text: sh(returnStdout: true, script: "/bin/hadolint --format json ${config.dockerfile} || true").trim())
+            recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
           }
         }
       }
