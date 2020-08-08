@@ -1,4 +1,7 @@
 def call(String imageName, Map config=[:], Closure body={}) {
+  if (!config.dockerfile) {
+    config.dockerfile = "Dockerfile"
+  }
   if (!config.registry) {
     config.registry = ""
   }
@@ -18,6 +21,15 @@ def call(String imageName, Map config=[:], Closure body={}) {
     }
 
     stages {
+      stages("Lint") {
+        agent {
+          docker { image "hadolint/hadolint" }
+        }
+        steps {
+          writeFile(file: 'hadolint.json', text: sh(returnStdout: true, script: "/bin/hadolint hadolint --format json ${config.dockerfile}").trim())
+          recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
+        }
+      }
       stage("Build") {
         environment { DOCKER = credentials("${config.credential}") }
         steps {
@@ -43,6 +55,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
               --label "org.label-schema.vcs-ref=${GIT_COMMIT_REV}" \
               --label "org.opencontainers.created=${BUILD_DATE}" \
               --label "org.label-schema.build-date=${BUILD_DATE}" \
+              -f ${config.dockerfile} \
               .
           """
         }
