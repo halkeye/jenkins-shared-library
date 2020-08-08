@@ -21,7 +21,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
     }
 
     stages {
-      stages("Lint") {
+      stage("Lint") {
         agent {
           docker { image "hadolint/hadolint" }
         }
@@ -103,6 +103,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
         }
       }
     }
+    // TODO: maybe only email out when we are building master or at least not PRs
     post {
       failure {
         emailext(
