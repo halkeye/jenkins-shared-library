@@ -34,6 +34,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
               // don't care about errors
               echo(e)
             }
+          }
         }
       }
       stage("Build") {
