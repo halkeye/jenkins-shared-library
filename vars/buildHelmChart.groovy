@@ -63,14 +63,16 @@ def call(body) {
             }
           }
           stage('Fix timestamps') {
-            // Blatently taken from https://stackoverflow.com/a/55609950
-            sh '''
-              git ls-tree -r --name-only HEAD | while read filename; do
-                unixtime=$(git log -1 --format="%at" -- "${filename}")
-                touchtime=$(date -d @$unixtime +'%Y%m%d%H%M.%S')
-                touch -t ${touchtime} "${filename}"
-              done
-            '''
+            dir('helm-charts') {
+              // Blatently taken from https://stackoverflow.com/a/55609950
+              sh '''
+                git ls-tree -r --name-only HEAD | while read filename; do
+                  unixtime=$(git log -1 --format="%at" -- "${filename}")
+                  touchtime=$(date -d @$unixtime +'%Y%m%d%H%M.%S')
+                  touch -t ${touchtime} "${filename}"
+                done
+              '''
+            }
           }
 
           stage('Build Index') {
