@@ -78,8 +78,7 @@ def call(body) {
               dir('helm-charts') {
                 sh """
                   mkdir -p ${name}
-                mv ../${name}*.tgz ${name}
-                mkdir -p "\$(helm home)/plugins"
+                  mv ../${name}*.tgz ${name}
                   helm plugin install https://github.com/halkeye/helm-repo-html
                   helm repo index ./
                   helm repo-html
