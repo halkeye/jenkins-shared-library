@@ -27,11 +27,11 @@ def call(body) {
         sh("mv chart ${name}")
 
         stage('Build') {
-          docker.image('alpine/helm:3.3.4').inside {
+          docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
             sh "helm lint ${name}"
             sh "helm package ${name}"
           }
-          docker.image('jnorwood/helm-docs:v1.3.0').inside {
+          docker.image('jnorwood/helm-docs:v1.3.0').inside('--entrypoint ""') {
             sh 'helm-docs'
           }
         }
@@ -74,7 +74,7 @@ def call(body) {
           }
 
           stage('Build Index') {
-            docker.image('alpine/helm:3.3.4').inside {
+            docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
               dir('helm-charts') {
                 sh """
                   mkdir -p ${name}
