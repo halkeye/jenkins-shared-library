@@ -29,11 +29,10 @@ def call(body) {
         stage('Build') {
           docker.image('alpine/helm:3.3.4').inside {
             sh "helm lint ${name}"
-            sh "wget -O - https://github.com/norwoodj/helm-docs/releases/download/v0.12.0/helm-docs_0.12.0_Linux_x86_64.tar.gz | tar xvzf - helm-docs"
-            dir(name) {
-              sh "../helm-docs"
-            }
             sh "helm package ${name}"
+          }
+          docker.image('jnorwood/helm-docs:v1.3.0').inside {
+            sh 'helm-docs'
           }
         }
 
