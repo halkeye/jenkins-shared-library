@@ -79,9 +79,8 @@ def call(body) {
                 sh """
                   mkdir -p ${name}
                   mv ../${name}*.tgz ${name}
-                  helm plugin install https://github.com/halkeye/helm-repo-html
-                  helm repo index ./
-                  helm repo-html
+                  wget -O - https://github.com/halkeye/helm-repo-html/releases/download/v0.0.8/helm-repo-html_0.0.8_linux_x86_64.tar.gz | tar xzf - -C /usr/local
+                  helm-repo-html
                   """
               }
             }
