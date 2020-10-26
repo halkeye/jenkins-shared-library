@@ -1,77 +1,20 @@
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-def call(String imageName, Map config=[:]) {
-  if (!config.registry) {
-    config.registry = "halkeye/"
-  }
-
+def call(String imageName, Map config=[:], Closure body={}) {
   if (!config.dockerfile) {
     config.dockerfile = "Dockerfile"
   }
-
-  if (!config.credentials) {
-    config.credentials = "dockerhub-halkeye"
+  if (!config.registry) {
+    config.registry = ""
+  }
+  if (!config.credential) {
+    config.credential = "dockerhub-halkeye"
   }
 
-  if (!config.mainBranch) {
-    config.mainBranch = "master"
-  }
 
   pipeline {
-    agent {
-      kubernetes {
-        label 'build-publish-docker'
-        inheritFrom 'jnlp-linux'
-        yaml '''
-apiVersion: "v1"
-kind: "Pod"
-metadata:
-  labels:
-    jenkins: "agent"
-  annotations:
-    container.apparmor.security.beta.kubernetes.io/img: unconfined
-    container.seccomp.security.alpha.kubernetes.io/img: unconfined
-spec:
-  tolerations:
-  - key: "os"
-    operator: "Equal"
-    value: "linux"
-    effect: "NoSchedule"
-  - key: "profile"
-    operator: "Equal"
-    value: "highmem"
-    effect: "NoSchedule"
-  affinity:
-    nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: kubernetes.io/os
-            operator: In
-            values:
-            - linux
-  restartPolicy: "Never"
-  containers:
-    - name: img
-      image: jess/img
-      command:
-      - cat
-      tty: true
-    - name: hadolint
-      image: hadolint/hadolint
-      command:
-      - cat
-      tty: true
-        '''
-      }
-    }
-
-    environment {
-      BUILD_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(new Date())
-      IMAGE_NAME = "${config.registry}${imageName}"
-      DOCKERFILE = "${config.dockerfile}"
-    }
+    agent any
 
     options {
       disableConcurrentBuilds()
@@ -82,82 +25,96 @@ spec:
 
     stages {
       stage("Lint") {
+        agent {
+          docker { image "hadolint/hadolint" }
+        }
         steps {
-          container('hadolint') {
-            script {
-              writeFile(file: 'hadolint.json', text: sh(returnStdout: true, script: '/bin/hadolint --format json $DOCKERFILE || true').trim())
-              recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
-            }
+          script {
+            writeFile(file: 'hadolint.json', text: sh(returnStdout: true, script: "/bin/hadolint --format json ${config.dockerfile} || true").trim())
+            recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
           }
         }
       }
       stage("Build") {
+        environment { DOCKER = credentials("${config.credential}") }
         steps {
-          container('img') {
-            sh '''
-                export GIT_COMMIT_REV=$(git log -n 1 --pretty=format:'%h')
-                export GIT_SCM_URL=$(git remote show origin | grep 'Fetch URL' | awk '{print $3}')
-                export SCM_URI=$(echo $GIT_SCM_URL | awk '{print gensub("git@github.com:","https://github.com/",$3)}')
+          sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${config.registry}"
+          sh "docker pull ${config.registry}${imageName} || true"
+          sh """
+              export GIT_COMMIT_REV=\$(git log -n 1 --pretty=format:'%h')
+              export GIT_SCM_URL=\$(git remote show origin | grep 'Fetch URL' | awk '{print \$3}')
+              export SCM_URI=\$(echo \$GIT_SCM_URL | awk '{print gensub("git@github.com:","https://github.com/",\$3)}')
 
-                img build \
-                    -t $IMAGE_NAME \
-                    --build-arg "GIT_COMMIT_REV=$GIT_COMMIT_REV" \
-                    --build-arg "GIT_SCM_URL=$GIT_SCM_URL" \
-                    --build-arg "BUILD_DATE=$BUILD_DATE" \
-                    --label "org.opencontainers.image.source=$GIT_SCM_URL" \
-                    --label "org.label-schema.vcs-url=$GIT_SCM_URL" \
-                    --label "org.opencontainers.image.url=$SCM_URI" \
-                    --label "org.label-schema.url=$SCM_URI" \
-                    --label "org.opencontainers.image.revision=$GIT_COMMIT_REV" \
-                    --label "org.label-schema.vcs-ref=$GIT_COMMIT_REV" \
-                    --label "org.opencontainers.image.created=$BUILD_DATE" \
-                    --label "org.label-schema.build-date=$BUILD_DATE" \
-                    -f $DOCKERFILE \
-                    .
-            '''
-          }
+              docker build \
+                  -t ${config.registry}${imageName} \
+                  --build-arg "GIT_COMMIT_REV=\$GIT_COMMIT_REV" \
+                  --build-arg "GIT_SCM_URL=\$GIT_SCM_URL" \
+                  --build-arg "BUILD_DATE=\$BUILD_DATE" \
+                  --label "org.opencontainers.image.source=\$GIT_SCM_URL" \
+                  --label "org.label-schema.vcs-url=\$GIT_SCM_URL" \
+                  --label "org.opencontainers.image.url=\$SCM_URI" \
+                  --label "org.label-schema.url=\$SCM_URI" \
+                  --label "org.opencontainers.image.revision=\$GIT_COMMIT_REV" \
+                  --label "org.label-schema.vcs-ref=\$GIT_COMMIT_REV" \
+                  --label "org.opencontainers.image.created=\$BUILD_DATE" \
+                  --label "org.label-schema.build-date=\$BUILD_DATE" \
+                  -f ${config.dockerfile} \
+                  .
+          """
         }
       }
-      stage("Deploy latest") {
-        when { branch "${config.mainBranch}" }
+      stage("Deploy master as latest") {
+        when { branch "master" }
+        environment { DOCKER = credentials("${config.credential}") }
         steps {
-          container('img') {
-            script {
-              sh "img tag ${config.registry}${imageName} ${config.registry}${imageName}:${config.mainBranch}"
-              sh "img tag ${config.registry}${imageName} ${config.registry}${imageName}:${GIT_COMMIT}"
-              withCredentials([usernamePassword(credentialsId: config.credentials, usernameVariable: 'DOCKER_USR', passwordVariable: 'DOCKER_PSW')]) {
-                sh "echo $DOCKER_PSW | img login -u $DOCKER_USR --password-stdin"
-              }
-              sh "img push ${config.registry}${imageName}:${config.mainBranch}"
-              sh "img push ${config.registry}${imageName}:${GIT_COMMIT}"
-              sh "img push ${config.registry}${imageName}"
-              sh "img logout"
-              if (currentBuild.description) {
-                currentBuild.description = currentBuild.description + " / "
-              }
-              currentBuild.description = "${config.mainBranch} / ${GIT_COMMIT}"
+          sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${config.registry}"
+          sh "docker tag ${config.registry}${imageName} ${config.registry}${imageName}:master"
+          sh "docker tag ${config.registry}${imageName} ${config.registry}${imageName}:${GIT_COMMIT}"
+          sh "docker push ${config.registry}${imageName}:master"
+          sh "docker push ${config.registry}${imageName}:${GIT_COMMIT}"
+          sh "docker push ${config.registry}${imageName}"
+          script {
+            if (currentBuild.description) {
+              currentBuild.description = currentBuild.description + " / "
             }
+            currentBuild.description = "master / ${GIT_COMMIT}"
           }
         }
       }
       stage("Deploy tag as tag") {
         when { buildingTag() }
+        environment { DOCKER = credentials("${config.credential}") }
         steps {
-          container('img') {
-            script {
-              sh "img tag ${config.registry}${imageName} ${config.registry}${imageName}:${TAG_NAME}"
-              withCredentials([usernamePassword(credentialsId: config.credentials, usernameVariable: 'DOCKER_USR', passwordVariable: 'DOCKER_PSW')]) {
-                sh "echo $DOCKER_PSW | img login -u $DOCKER_USR --password-stdin"
-              }
-              sh "img push ${config.registry}${imageName}:${TAG_NAME}"
-              sh "img logout"
-              if (currentBuild.description) {
-                currentBuild.description = currentBuild.description + " / "
-              }
-              currentBuild.description = "${TAG_NAME}"
+          sh "docker login --username=\"$DOCKER_USR\" --password=\"$DOCKER_PSW\" ${config.registry}"
+          sh "docker tag ${config.registry}${imageName} ${config.registry}${imageName}:${TAG_NAME}"
+          sh "docker push ${config.registry}${imageName}:${TAG_NAME}"
+          script {
+            if (currentBuild.description) {
+              currentBuild.description = currentBuild.description + " / "
+            }
+            currentBuild.description = "${TAG_NAME}"
+          }
+        }
+      }
+      stage("Extra Steps") {
+        steps {
+          script {
+            if (body) {
+              body()
             }
           }
         }
+      }
+    }
+    // TODO: maybe only email out when we are building master or at least not PRs
+    post {
+      failure {
+        emailext(
+          attachLog: true,
+          recipientProviders: [developers()],
+          body: "Build failed (see ${env.BUILD_URL})",
+          subject: "[JENKINS] ${env.JOB_NAME} failed",
+        )
       }
     }
   }
