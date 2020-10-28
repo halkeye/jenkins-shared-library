@@ -22,6 +22,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       DOCKER_REGISTRY = "${config.registry}"
       IMAGE_NAME = "${config.registry}${imageName}"
       DOCKERFILE = "${config.dockerfile}"
+      SHORT_GIT_COMMIT_REV = GIT_COMMIT.take(6)
     }
 
     options {
@@ -77,16 +78,16 @@ def call(String imageName, Map config=[:], Closure body={}) {
           sh '''
             docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
             docker tag $IMAGE_NAME $IMAGE_NAME:master
-            docker tag $IMAGE_NAME $IMAGE_NAME:${GIT_COMMIT}
+            docker tag $IMAGE_NAME $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
             docker push $IMAGE_NAME:master
-            docker push $IMAGE_NAME:${GIT_COMMIT}
+            docker push $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
             docker push $IMAGE_NAME
           '''
           script {
             if (currentBuild.description) {
               currentBuild.description = currentBuild.description + " / "
             }
-            currentBuild.description = "master / ${GIT_COMMIT}"
+            currentBuild.description = "master / ${SHORT_GIT_COMMIT_REV}"
           }
         }
       }
