@@ -2,6 +2,9 @@
 def call(Map params = [:]) {
   pipeline {
     agent { docker 'maven' }
+    environment {
+      HOME = env.WORKSPACE
+    }
     stages {
       stage('build') {
         steps {
