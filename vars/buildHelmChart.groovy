@@ -79,6 +79,7 @@ def call(body) {
                 sh """
                   mkdir -p ${name}
                   mv ../${name}*.tgz ${name}
+                  helm repo index ./
                   mkdir /tmp/helm-repo-html
                   wget -O - https://github.com/halkeye/helm-repo-html/releases/download/v0.0.8/helm-repo-html_0.0.8_linux_x86_64.tar.gz | tar xzf - -C /tmp/helm-repo-html
                   /tmp/helm-repo-html/bin/helm-repo-html
