@@ -77,9 +77,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
         steps {
           sh '''
             docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
-            docker tag $IMAGE_NAME $IMAGE_NAME:master
             docker tag $IMAGE_NAME $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
-            docker push $IMAGE_NAME:master
             docker push $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
             docker push $IMAGE_NAME
           '''
