@@ -1,6 +1,19 @@
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+def runDockerCommand(image, cmd) {
+  sh """
+    docker run \
+      --network host \
+      --rm \
+      -w "\$PWD" \
+      -v "\$PWD:\$PWD" \
+      -u \$(id -u):\$(id -g) \
+      $image \
+      $cmd
+  """
+}
+
 def call(String imageName, Map config=[:], Closure body={}) {
   if (!config.dockerfile) {
     config.dockerfile = "Dockerfile"
@@ -34,12 +47,9 @@ def call(String imageName, Map config=[:], Closure body={}) {
 
     stages {
       stage("Lint") {
-        agent {
-          docker { image "hadolint/hadolint" }
-        }
         steps {
           script {
-            writeFile(file: 'hadolint.json', text: sh(returnStdout: true, script: '/bin/hadolint --format json ${DOCKERFILE} || true').trim())
+            runDockerCommand('hadolint/hadolint', '/bin/hadolint --format json ${DOCKERFILE} || true > hadolint.json')
             recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
           }
         }
