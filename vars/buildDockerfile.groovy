@@ -14,6 +14,9 @@ def call(String imageName, Map config=[:], Closure body={}) {
   if (!config.buildContainer) {
     config.buildContainer = 'r.j3ss.co/img:v0.5.11'
   }
+  if (!config.buildContainerArgs) {
+    config.buildContainerArgs = '-u 0:0 --privileged --entrypoint=""'
+  }
 
   pipeline {
     agent any
@@ -48,7 +51,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       stage("Build") {
         steps {
           script {
-            docker.image(config.buildContainer).inside('--privileged --entrypoint=""') {
+            docker.image(config.buildContainer).inside(config.buildContainerArgs) {
               sh('''
                 export GIT_COMMIT_REV=$(git log -n 1 --pretty=format:'%h')
                 export GIT_SCM_URL=$(git remote show origin | grep 'Fetch URL' | awk '{print $3}')
@@ -82,7 +85,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
           script {
-            docker.image(config.buildContainer).inside('--privileged --entrypoint=""') {
+            docker.image(config.buildContainer).inside(config.buildContainerArgs) {
               sh('''
               img login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
               img tag $IMAGE_NAME $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
@@ -102,7 +105,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
           script {
-            docker.image(config.buildContainer).inside('--privileged --entrypoint=""') {
+            docker.image(config.buildContainer).inside(config.buildContainerArgs) {
               sh('''
               img login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
               img tag $IMAGE_NAME $IMAGE_NAME:${TAG_NAME}
