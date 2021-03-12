@@ -1,13 +1,6 @@
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-
-def runDockerCommand(image, cmd) {
-  docker.image(image).inside {
-    sh(cmd)
-  }
-}
-
 def call(String imageName, Map config=[:], Closure body={}) {
   if (!config.dockerfile) {
     config.dockerfile = "Dockerfile"
@@ -19,9 +12,8 @@ def call(String imageName, Map config=[:], Closure body={}) {
     config.credential = "dockerhub-halkeye"
   }
   if (!config.buildContainer) {
-    config.buildContainer = 'jenkinsciinfra/builder:latest'
+    config.buildContainer = 'r.j3ss.co/img'
   }
-
 
   pipeline {
     agent any
@@ -46,15 +38,17 @@ def call(String imageName, Map config=[:], Closure body={}) {
       stage("Lint") {
         steps {
           script {
-            runDockerCommand('hadolint/hadolint', 'ls -la')
-            runDockerCommand('hadolint/hadolint', '/bin/hadolint --format json ${DOCKERFILE} || true > hadolint.json')
+            docker.image('hadolint/hadolint').inside {
+              sh('/bin/hadolint --format json ${DOCKERFILE} || true > hadolint.json')
+            }
             recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
           }
         }
       }
       stage("Build") {
         steps {
-          runDockerCommand(config.buildContainer,'''
+          docker.image(config.buildContainer).inside('--security-opt seccomp=unconfined --security-opt apparmor=unconfined') {
+            sh('''
               export GIT_COMMIT_REV=$(git log -n 1 --pretty=format:'%h')
               export GIT_SCM_URL=$(git remote show origin | grep 'Fetch URL' | awk '{print $3}')
               export SCM_URI=$(echo $GIT_SCM_URL | awk '{print gensub("git@github.com:","https://github.com/",$3)}')
@@ -77,19 +71,22 @@ def call(String imageName, Map config=[:], Closure body={}) {
                   --label "org.label-schema.build-date=$BUILD_DATE" \
                   -f ${DOCKERFILE} \
                   .
-          ''')
+            ''')
+          }
         }
       }
       stage("Deploy master as latest") {
         when { branch "master" }
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
-          runDockerCommand(config.buildContainer,'''
+          docker.image(config.buildContainer).inside('--security-opt seccomp=unconfined --security-opt apparmor=unconfined') {
+            sh('''
             img login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
             img tag $IMAGE_NAME $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
             img push $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
             img push $IMAGE_NAME
-          ''')
+            ''')
+          }
           script {
             if (currentBuild.description) {
               currentBuild.description = currentBuild.description + " / "
@@ -102,11 +99,13 @@ def call(String imageName, Map config=[:], Closure body={}) {
         when { buildingTag() }
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
-          runDockerCommand(config.buildContainer, '''
+          docker.image(config.buildContainer).inside('--security-opt seccomp=unconfined --security-opt apparmor=unconfined') {
+            sh('''
             img login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
             img tag $IMAGE_NAME $IMAGE_NAME:${TAG_NAME}
             img push $IMAGE_NAME:${TAG_NAME}
-          ''')
+            ''')
+          }
           script {
             if (currentBuild.description) {
               currentBuild.description = currentBuild.description + " / "
