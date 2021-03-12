@@ -3,16 +3,9 @@ import java.util.Date;
 
 
 def runDockerCommand(image, cmd) {
-  sh """
-    docker run \
-      --network host \
-      --rm \
-      -w "\$PWD" \
-      -v "\$PWD:\$PWD" \
-      -u \$(id -u):\$(id -g) \
-      $image \
-      $cmd
-  """
+  docker.image(image).inside {
+    sh(cmd)
+  }
 }
 
 def call(String imageName, Map config=[:], Closure body={}) {
@@ -26,7 +19,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
     config.credential = "dockerhub-halkeye"
   }
   if (!config.buildContainer) {
-    config.buildContainer = 'jenkinsciinfra/builder:master'
+    config.buildContainer = 'jenkinsciinfra/builder:latest'
   }
 
 
