@@ -1,6 +1,7 @@
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+
 def runDockerCommand(image, cmd) {
   sh """
     docker run \
@@ -23,6 +24,9 @@ def call(String imageName, Map config=[:], Closure body={}) {
   }
   if (!config.credential) {
     config.credential = "dockerhub-halkeye"
+  }
+  if (!config.buildContainer) {
+    config.buildContainer = 'jenkinsciinfra/builder:1ca0f562747f'
   }
 
 
@@ -56,7 +60,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       }
       stage("Build") {
         steps {
-          runDockerCommand('jenkinsciinfra/builder:1.0.0','''
+          runDockerCommand(config.buildContainer,'''
               export GIT_COMMIT_REV=$(git log -n 1 --pretty=format:'%h')
               export GIT_SCM_URL=$(git remote show origin | grep 'Fetch URL' | awk '{print $3}')
               export SCM_URI=$(echo $GIT_SCM_URL | awk '{print gensub("git@github.com:","https://github.com/",$3)}')
@@ -86,7 +90,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
         when { branch "master" }
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
-          runDockerCommand('jenkinsciinfra/builder:1.0.0','''
+          runDockerCommand(config.buildContainer,'''
             img login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
             img tag $IMAGE_NAME $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
             img push $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
@@ -104,7 +108,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
         when { buildingTag() }
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
-          runDockerCommand('jenkinsciinfra/builder:1.0.0', '''
+          runDockerCommand(config.buildContainer, '''
             img login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
             img tag $IMAGE_NAME $IMAGE_NAME:${TAG_NAME}
             img push $IMAGE_NAME:${TAG_NAME}
