@@ -12,7 +12,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
     config.credential = "dockerhub-halkeye"
   }
   if (!config.buildContainer) {
-    config.buildContainer = 'r.j3ss.co/img'
+    config.buildContainer = 'r.j3ss.co/img:v0.5.11'
   }
 
   pipeline {
