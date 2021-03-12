@@ -56,15 +56,15 @@ def call(String imageName, Map config=[:], Closure body={}) {
       }
       stage("Build") {
         steps {
-          sh '''
+          runDockerCommand('jenkinsciinfra/builder:1.0.0','''
               export GIT_COMMIT_REV=$(git log -n 1 --pretty=format:'%h')
               export GIT_SCM_URL=$(git remote show origin | grep 'Fetch URL' | awk '{print $3}')
               export SCM_URI=$(echo $GIT_SCM_URL | awk '{print gensub("git@github.com:","https://github.com/",$3)}')
 
-              docker version
-              docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
-              docker pull ${IMAGE_NAME} || true
-              docker build \
+              img version
+              img login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
+              img pull ${IMAGE_NAME} || true
+              img build \
                   -t ${IMAGE_NAME} \
                   --build-arg "GIT_COMMIT_REV=$GIT_COMMIT_REV" \
                   --build-arg "GIT_SCM_URL=$GIT_SCM_URL" \
@@ -79,19 +79,19 @@ def call(String imageName, Map config=[:], Closure body={}) {
                   --label "org.label-schema.build-date=$BUILD_DATE" \
                   -f ${DOCKERFILE} \
                   .
-          '''
+          ''')
         }
       }
       stage("Deploy master as latest") {
         when { branch "master" }
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
-          sh '''
-            docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
-            docker tag $IMAGE_NAME $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
-            docker push $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
-            docker push $IMAGE_NAME
-          '''
+          runDockerCommand('jenkinsciinfra/builder:1.0.0','''
+            img login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
+            img tag $IMAGE_NAME $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
+            img push $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
+            img push $IMAGE_NAME
+          ''')
           script {
             if (currentBuild.description) {
               currentBuild.description = currentBuild.description + " / "
@@ -104,11 +104,11 @@ def call(String imageName, Map config=[:], Closure body={}) {
         when { buildingTag() }
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
-          sh '''
-            docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
-            docker tag $IMAGE_NAME $IMAGE_NAME:${TAG_NAME}
-            docker push $IMAGE_NAME:${TAG_NAME}
-          '''
+          runDockerCommand('jenkinsciinfra/builder:1.0.0', '''
+            img login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
+            img tag $IMAGE_NAME $IMAGE_NAME:${TAG_NAME}
+            img push $IMAGE_NAME:${TAG_NAME}
+          ''')
           script {
             if (currentBuild.description) {
               currentBuild.description = currentBuild.description + " / "
