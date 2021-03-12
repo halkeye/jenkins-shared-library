@@ -26,7 +26,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
     config.credential = "dockerhub-halkeye"
   }
   if (!config.buildContainer) {
-    config.buildContainer = 'jenkinsciinfra/builder:1ca0f562747f'
+    config.buildContainer = 'jenkinsciinfra/builder:master'
   }
 
 
@@ -53,6 +53,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       stage("Lint") {
         steps {
           script {
+            runDockerCommand('hadolint/hadolint', 'ls -la')
             runDockerCommand('hadolint/hadolint', '/bin/hadolint --format json ${DOCKERFILE} || true > hadolint.json')
             recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
           }
