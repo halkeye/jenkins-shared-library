@@ -32,7 +32,9 @@ def call(body) {
             sh "helm package ${name}"
           }
           docker.image('jnorwood/helm-docs:v1.3.0').inside('--entrypoint ""') {
-            sh 'helm-docs'
+            dir(name) {
+              sh 'helm-docs'
+            }
           }
         }
 
