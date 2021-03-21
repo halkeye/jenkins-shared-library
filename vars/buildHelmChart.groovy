@@ -27,7 +27,7 @@ def call(body) {
         sh("mv chart ${name}")
 
         stage('Build') {
-          docker.image('jnorwood/helm-docs:v1.3.0').inside('--entrypoint ""') {
+          docker.image('jnorwood/helm-docs:v1.5.0').inside('--entrypoint ""') {
             dir(name) {
               sh 'helm-docs'
             }
