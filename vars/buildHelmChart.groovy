@@ -27,15 +27,16 @@ def call(body) {
         sh("mv chart ${name}")
 
         stage('Build') {
-          docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
-            sh "helm lint ${name}"
-            sh "helm package ${name}"
-          }
           docker.image('jnorwood/helm-docs:v1.3.0').inside('--entrypoint ""') {
             dir(name) {
               sh 'helm-docs'
             }
           }
+          docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
+            sh "helm lint ${name}"
+            sh "helm package ${name}"
+          }
+          archiveArtifacts("${name}*.tgz")
         }
 
         if (env.BRANCH_NAME == "master") {
