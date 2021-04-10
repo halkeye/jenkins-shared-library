@@ -36,7 +36,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
         steps {
           script {
             docker.image('hadolint/hadolint:latest-alpine').inside {
-              sh('/bin/hadolint --format json ${DOCKERFILE} || true > hadolint.json')
+              sh('/bin/hadolint --no-fail --format json ${DOCKERFILE} | tee hadolint.json')
             }
             recordIssues(tools: [hadoLint(pattern: 'hadolint.json')])
           }
