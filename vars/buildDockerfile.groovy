@@ -11,6 +11,9 @@ def call(String imageName, Map config=[:], Closure body={}) {
   if (!config.credential) {
     config.credential = "dockerhub-halkeye"
   }
+  if (!config.mainBranch) {
+    config.mainBranch = "master"
+  }
 
   pipeline {
     agent any
@@ -72,8 +75,8 @@ def call(String imageName, Map config=[:], Closure body={}) {
           }
         }
       }
-      stage("Deploy master as latest") {
-        when { branch "master" }
+      stage("Deploy ${config.mainBranch} as latest") {
+        when { branch "${config.mainBranch}" }
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
           script {
@@ -86,7 +89,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
             if (currentBuild.description) {
               currentBuild.description = currentBuild.description + " / "
             }
-            currentBuild.description = "master / ${SHORT_GIT_COMMIT_REV}"
+            currentBuild.description = "${config.mainBranch} / ${SHORT_GIT_COMMIT_REV}"
           }
         }
       }
