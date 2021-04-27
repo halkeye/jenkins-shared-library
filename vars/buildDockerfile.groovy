@@ -75,7 +75,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
           }
         }
       }
-      stage("Deploy ${config.mainBranch} as latest") {
+      stage("Deploy master as latest") {
         when { branch "${config.mainBranch}" }
         environment { DOCKER = credentials("dockerhub-halkeye") }
         steps {
