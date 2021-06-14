@@ -25,7 +25,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       IMAGE_NAME = "${config.registry}${imageName}"
       DOCKERFILE = "${config.dockerfile}"
       SHORT_GIT_COMMIT_REV = GIT_COMMIT.take(6)
-      SKIP_PULL = config.skipPull ? "true" : "false"
+      SKIP_PULL = "${config.skipPull ? "true" : "false"}"
     }
 
     options {
