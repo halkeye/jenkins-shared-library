@@ -25,6 +25,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       IMAGE_NAME = "${config.registry}${imageName}"
       DOCKERFILE = "${config.dockerfile}"
       SHORT_GIT_COMMIT_REV = GIT_COMMIT.take(6)
+      SKIP_PULL = config.skipPull ? "true" : "false"
     }
 
     options {
@@ -55,7 +56,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
 
               docker version
               docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
-              docker pull ${IMAGE_NAME} || true
+              [ "$SKIP_PULL" != "true" ] && (docker pull ${IMAGE_NAME} || true)
               docker build \
                   -t ${IMAGE_NAME} \
                   --build-arg "GIT_COMMIT_REV=$GIT_COMMIT_REV" \
