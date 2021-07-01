@@ -26,6 +26,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       DOCKERFILE = "${config.dockerfile}"
       SHORT_GIT_COMMIT_REV = GIT_COMMIT.take(6)
       SKIP_PULL = "${config.skipPull ? "true" : "false"}"
+      NO_CACHE = "${config.noCache ? "--no-cache" : ""}"
     }
 
     options {
@@ -57,7 +58,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
               docker version
               docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
               [ "$SKIP_PULL" != "true" ] && (docker pull ${IMAGE_NAME} || true)
-              docker build \
+              docker build ${NO_CACHE} \
                   -t ${IMAGE_NAME} \
                   --build-arg "GIT_COMMIT_REV=$GIT_COMMIT_REV" \
                   --build-arg "GIT_SCM_URL=$GIT_SCM_URL" \
