@@ -34,6 +34,9 @@ def call(body) {
           }
           docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
             sh "helm lint ${name}"
+            dir(name) {
+              sh "helm dependency update"
+            }
             sh "helm package ${name}"
           }
           archiveArtifacts("${name}*.tgz")
