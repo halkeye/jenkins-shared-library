@@ -19,7 +19,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
     agent any
 
     environment {
-      DOCKER = credentials("dockerhub-halkeye")
+      DOCKER = credentials(${config.credential})
       BUILD_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX").format(new Date())
       DOCKER_REGISTRY = "${config.registry}"
       IMAGE_NAME = "${config.registry}${imageName}"
@@ -79,7 +79,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       }
       stage("Deploy master as latest") {
         when { branch "${config.mainBranch}" }
-        environment { DOCKER = credentials("dockerhub-halkeye") }
+        environment { DOCKER = credentials(${config.credential}) }
         steps {
           script {
             sh('''
@@ -97,7 +97,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       }
       stage("Deploy tag as tag") {
         when { buildingTag() }
-        environment { DOCKER = credentials("dockerhub-halkeye") }
+        environment { DOCKER = credentials(${config.credential}) }
         steps {
           script {
             sh('''
