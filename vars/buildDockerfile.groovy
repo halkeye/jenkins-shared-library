@@ -24,7 +24,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       DOCKER_REGISTRY = "${config.registry}"
       IMAGE_NAME = "${config.registry}${imageName}"
       DOCKERFILE = "${config.dockerfile}"
-      SHORT_GIT_COMMIT_REV = GIT_COMMIT.take(6)
+      DATED_GIT_HASH = new SimpleDateFormat("yyMMddHHmmss").format(new Date()) + GIT_COMMIT.take(6)
       SKIP_PULL = "${config.skipPull ? "true" : "false"}"
       NO_CACHE = "${config.noCache ? "--no-cache" : ""}"
     }
@@ -84,14 +84,14 @@ def call(String imageName, Map config=[:], Closure body={}) {
           script {
             sh('''
               docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
-              docker tag $IMAGE_NAME $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
-              docker push $IMAGE_NAME:${SHORT_GIT_COMMIT_REV}
+              docker tag $IMAGE_NAME $IMAGE_NAME:${DATED_GIT_HASH}
+              docker push $IMAGE_NAME:${DATED_GIT_HASH}
               docker push $IMAGE_NAME
             ''')
             if (currentBuild.description) {
               currentBuild.description = currentBuild.description + " / "
             }
-            currentBuild.description = "${config.mainBranch} / ${SHORT_GIT_COMMIT_REV}"
+            currentBuild.description = "${config.mainBranch} / ${DATED_GIT_HASH}"
           }
         }
       }
