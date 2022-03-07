@@ -24,7 +24,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
       DOCKER_REGISTRY = "${config.registry}"
       IMAGE_NAME = "${config.registry}${imageName}"
       DOCKERFILE = "${config.dockerfile}"
-      DATED_GIT_HASH = new SimpleDateFormat("yyMMddHHmmss").format(new Date()) + GIT_COMMIT.take(6)
+      DATED_GIT_HASH = "${new SimpleDateFormat("yyMMddHHmmss").format(new Date())}${GIT_COMMIT.take(6)}"
       SKIP_PULL = "${config.skipPull ? "true" : "false"}"
       NO_CACHE = "${config.noCache ? "--no-cache" : ""}"
     }
