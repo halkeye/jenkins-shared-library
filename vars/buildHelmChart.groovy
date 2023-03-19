@@ -51,7 +51,7 @@ def call(body) {
                   docker.image('node:18').inside {
                     dir(name) {
                       sh '''
-                        npm install -g semantic-release@20.1.3 semantic-release-helm3@2.4.0 @semantic-release/git@10.0.1
+                        npm install -g semantic-release@20.1.3 semantic-release-helm3@2.4.1 @semantic-release/git@10.0.1
                         npx semantic-release --repositoryUrl $NEW_URL
                       '''
                     }
