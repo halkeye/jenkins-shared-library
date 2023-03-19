@@ -42,14 +42,15 @@ def call(body) {
               withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
                 withEnv([
                     'PREFIX=/tmp/node',
+                    'GIT_AUTHOR_NAME=Jenkins',
+                    'GIT_AUTHOR_EMAIL=jenkins@gavinmogan.com'
+                    'GIT_COMMITTER_NAME=Jenkins',
+                    'GIT_COMMITTER_EMAIL=jenkins@gavinmogan.com'
                     "NEW_URL=${env.GIT_URL.replace("https://", "https://${github_usr}:${github_psw}@")}"
                 ]) {
                   docker.image('node:18').inside {
                     dir(name) {
                       sh '''
-                        git config --global user.email "jenkins@gavinmogan.com"
-                        git config --global user.name "Jenkins"
-                        git config --global push.default simple
                         npm install -g semantic-release@20.1.3 semantic-release-helm3@2.4.0 @semantic-release/git@10.0.1
                         npx semantic-release --repositoryUrl $NEW_URL
                       '''
