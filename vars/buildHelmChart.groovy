@@ -43,9 +43,9 @@ def call(body) {
                 withEnv([
                     'PREFIX=/tmp/node',
                     'GIT_AUTHOR_NAME=Jenkins',
-                    'GIT_AUTHOR_EMAIL=jenkins@gavinmogan.com'
+                    'GIT_AUTHOR_EMAIL=jenkins@gavinmogan.com',
                     'GIT_COMMITTER_NAME=Jenkins',
-                    'GIT_COMMITTER_EMAIL=jenkins@gavinmogan.com'
+                    'GIT_COMMITTER_EMAIL=jenkins@gavinmogan.com',
                     "NEW_URL=${env.GIT_URL.replace("https://", "https://${github_usr}:${github_psw}@")}"
                 ]) {
                   docker.image('node:18').inside {
