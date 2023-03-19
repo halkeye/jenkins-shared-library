@@ -37,7 +37,7 @@ def call(body) {
           }
         }
         if (env.BRANCH_NAME == "master") {
-          if (fileExists "${name}/renovate.json") {
+          if (fileExists("${name}/renovate.json")) {
             stage('Release') {
               withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
                 docker.image('node:lts').inside {
