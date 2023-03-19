@@ -42,7 +42,7 @@ def call(body) {
               withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
                 withEnv([
                     'PREFIX=/tmp/node',
-                    "NEW_URL=${env.GIT_URL.replace("https://", "https://${github_usr}:${github_psw}@"}"
+                    "NEW_URL=${env.GIT_URL.replace("https://", "https://${github_usr}:${github_psw}@")}"
                 ]) {
                   docker.image('node:18').inside {
                     dir(name) {
