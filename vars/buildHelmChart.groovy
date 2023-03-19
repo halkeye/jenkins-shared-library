@@ -40,10 +40,11 @@ def call(body) {
           if (fileExists("${name}/renovate.json")) {
             stage('Release') {
               withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
-                docker.image('node:lts').inside {
+                docker.image('node:18').inside {
                   dir(name) {
                     env.NEW_URL = env.GIT_URL.replace("https://", "https://${github_usr}:${github_psw}@");
                     sh '''
+                      npm config --global set prefix /tmp/node
                       git config --global user.email "jenkins@gavinmogan.com"
                       git config --global user.name "Jenkins"
                       git config --global push.default simple
