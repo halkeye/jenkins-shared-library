@@ -53,7 +53,7 @@ def call(String imageName, Map config=[:], Closure body={}) {
             sh('''
               export GIT_COMMIT_REV=$(git log -n 1 --pretty=format:'%h')
               export GIT_SCM_URL=$(git remote show origin | grep 'Fetch URL' | awk '{print $3}')
-              export SCM_URI=$(echo $GIT_SCM_URL | awk '{print gensub("git@github.com:","https://github.com/",$3)}')
+              export SCM_URI="${GIT_SCM_URL/git@github.com:/https://github.com/}"
 
               docker version
               docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY

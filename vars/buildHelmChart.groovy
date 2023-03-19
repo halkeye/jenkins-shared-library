@@ -34,27 +34,49 @@ def call(body) {
           }
           docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
             sh "helm lint ${name}"
-            sh "helm package ${name}"
           }
-          archiveArtifacts("${name}*.tgz")
         }
-
         if (env.BRANCH_NAME == "master") {
-          stage('Tag') {
-            withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
-              dir(name) {
-                sh 'git config --global user.email "jenkins@gavinmogan.com"'
-                sh 'git config --global user.name "Jenkins"'
-                sh 'git config --global push.default simple'
-                sh "git tag -a -m 'v${version}' v${version}"
+          if (fileExists "${name}/renovate.json") {
+            stage('Release') {
+              withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
+                docker.image('node:lts').inside {
+                  dir(name) {
+                    env.NEW_URL = env.GIT_URL.replace("https://", "https://${github_usr}:${github_psw}@");
+                    sh '''
+                      git config --global user.email "jenkins@gavinmogan.com"
+                      git config --global user.name "Jenkins"
+                      git config --global push.default simple
+                      npm install -g semantic-release-helm@2.2.0 semantic-release@20.1.3
+                      npx semantic-release -p semantic-release-helm --chartPath --repositoryUrl $NEW_URL
+                    '''
+                }
+              }
+            }
+          } else {
+            stage('Tag') {
+              withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
+                dir(name) {
+                  sh 'git config --global user.email "jenkins@gavinmogan.com"'
+                  sh 'git config --global user.name "Jenkins"'
+                  sh 'git config --global push.default simple'
+                  sh "git tag -a -m 'v${version}' v${version}"
 
-                newUrl = env.GIT_URL.replace("https://", "https://${github_usr}:${github_psw}@");
-                sh "git remote add tags ${newUrl}"
-                sh "git push tags v${version}"
-                sh "git remote remove tags"
+                  newUrl = env.GIT_URL.replace("https://", "https://${github_usr}:${github_psw}@");
+                  sh "git remote add tags ${newUrl}"
+                  sh "git push tags v${version}"
+                  sh "git remote remove tags"
+                }
               }
             }
           }
+        }
+
+        stage('Package') {
+          docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
+            sh "helm package ${name}"
+          }
+          archiveArtifacts("${name}*.tgz")
         }
 
         lock('helm-charts') {
