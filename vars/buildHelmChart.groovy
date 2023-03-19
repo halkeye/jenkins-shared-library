@@ -51,7 +51,7 @@ def call(body) {
                         git config --global user.name "Jenkins"
                         git config --global push.default simple
                         npm install -g semantic-release-helm@2.2.0 semantic-release@20.1.3
-                        npx semantic-release -p semantic-release-helm --chartPath --repositoryUrl $NEW_URL
+                        npx semantic-release -p semantic-release-helm --chartPath . --repositoryUrl $NEW_URL
                       '''
                     }
                   }
