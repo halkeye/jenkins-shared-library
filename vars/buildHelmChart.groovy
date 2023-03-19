@@ -37,7 +37,7 @@ def call(body) {
           }
         }
         if (env.BRANCH_NAME == "master") {
-          if (fileExists("${name}/renovate.json")) {
+          if (fileExists("${name}/.releaserc")) {
             stage('Release') {
               withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
                 withEnv([
@@ -50,8 +50,8 @@ def call(body) {
                         git config --global user.email "jenkins@gavinmogan.com"
                         git config --global user.name "Jenkins"
                         git config --global push.default simple
-                        npm install -g semantic-release-helm@2.2.0 semantic-release@20.1.3
-                        npx semantic-release -p semantic-release-helm --chartPath . --repositoryUrl $NEW_URL
+                        npm install -g semantic-release@20.1.3 semantic-release-helm3@2.4.0 @semantic-release/git@10.0.1
+                        npx semantic-release -p semantic-release-helm3 --chartPath . --repositoryUrl $NEW_URL
                       '''
                     }
                   }
