@@ -48,20 +48,19 @@ def call(String imageName, Map config=[:], Closure body={}) {
         }
       }
       stage("Build") {
+        environment {
+          SCM_URI = "${env.GIT_URL.replace('git@github.com:', 'https://github.com')}"
+        }
         steps {
           script {
             sh('''
-              export GIT_COMMIT_REV=$(git log -n 1 --pretty=format:'%h')
-              export GIT_SCM_URL=$(git remote show origin | grep 'Fetch URL' | awk '{print $3}')
-              export SCM_URI="${GIT_SCM_URL/git@github.com:/https://github.com/}"
-
               docker version
               docker login --username="$DOCKER_USR" --password="$DOCKER_PSW" $DOCKER_REGISTRY
               [ "$SKIP_PULL" != "true" ] && (docker pull ${IMAGE_NAME} || true)
               docker build ${NO_CACHE} \
                   -t ${IMAGE_NAME} \
-                  --build-arg "GIT_COMMIT_REV=$GIT_COMMIT_REV" \
-                  --build-arg "GIT_SCM_URL=$GIT_SCM_URL" \
+                  --build-arg "GIT_COMMIT_REV=$GIT_COMMIT" \
+                  --build-arg "GIT_SCM_URL=$GIT_URL" \
                   --build-arg "BUILD_DATE=$BUILD_DATE" \
                   --label "org.opencontainers.image.source=$GIT_SCM_URL" \
                   --label "org.label-schema.vcs-url=$GIT_SCM_URL" \
