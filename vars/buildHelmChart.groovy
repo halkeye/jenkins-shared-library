@@ -46,7 +46,7 @@ def call(body) {
         }
 
         if (env.BRANCH_NAME == "master") {
-          if (fileExists("${name}/.releaserc")) {
+          if (fileExists("${name}/release.config.cjs")) {
             stage('Release') {
               withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
                 withEnv([
@@ -60,7 +60,7 @@ def call(body) {
                   docker.image('node:18').inside {
                     dir(name) {
                       sh '''
-                        npm install -g semantic-release@20.1.3 semantic-release-helm3@2.4.1 @semantic-release/git@10.0.1
+                        npm install semantic-release@20.1.3 @halkeye/helm-semantic-release-config
                         npx semantic-release --repositoryUrl $NEW_URL
                       '''
                     }
