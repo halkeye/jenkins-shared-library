@@ -35,7 +35,7 @@ def call(body) {
         """)
 
         stage('Download Dependancies') {
-          docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
+          docker.image('alpine/helm:3.11.2').inside('--entrypoint ""') {
             dir(name) {
               sh "helm dependency build"
             }
@@ -51,7 +51,7 @@ def call(body) {
         }
 
         stage('Lint') {
-          docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
+          docker.image('alpine/helm:3.11.2').inside('--entrypoint ""') {
             sh "helm lint ${name}"
           }
         }
@@ -96,7 +96,7 @@ def call(body) {
         }
 
         stage('Package') {
-          docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
+          docker.image('alpine/helm:3.11.2').inside('--entrypoint ""') {
             sh "helm package ${name}"
           }
           archiveArtifacts("${name}*.tgz")
