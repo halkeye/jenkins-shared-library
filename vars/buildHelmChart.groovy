@@ -37,7 +37,14 @@ def call(body) {
         stage('Download Dependancies') {
           docker.image('alpine/helm:3.11.2').inside('--entrypoint ""') {
             dir(name) {
-              sh "helm dependency build"
+              sh '''
+                ITER=0
+                for url in $(grep repository Chart.yaml | awk '{print $2}' | sort | uniq); do
+                  helm repo add repo${ITER} ${url}
+                  ITER=$(expr $ITER + 1)
+                done
+                helm dependency build
+              '''
             }
           }
         }
