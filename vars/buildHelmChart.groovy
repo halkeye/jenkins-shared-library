@@ -34,12 +34,23 @@ def call(body) {
           git config --global push.default simple
         """)
 
-        stage('Build') {
+        stage('Download Dependancies') {
+          docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
+            dir(name) {
+              sh "helm dependency build"
+            }
+          }
+        }
+
+        stage('Build Readme') {
           docker.image('jnorwood/helm-docs:v1.5.0').inside('--entrypoint ""') {
             dir(name) {
               sh 'helm-docs'
             }
           }
+        }
+
+        stage('Lint') {
           docker.image('alpine/helm:3.3.4').inside('--entrypoint ""') {
             sh "helm lint ${name}"
           }
