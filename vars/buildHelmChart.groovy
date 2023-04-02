@@ -112,7 +112,7 @@ def call(body) {
         lock('helm-charts') {
           stage('Checkout halkeye/helm-charts') {
             withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
-              sh 'git clone -b gh-pages https://${github_usr}:${github_psw}@github.com/halkeye/helm-charts.git helm-charts'
+              sh 'git clone -b main https://${github_usr}:${github_psw}@github.com/halkeye/helm-charts.git helm-charts'
             }
           }
 
@@ -132,7 +132,7 @@ def call(body) {
             stage('Deploy') {
               withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
                 dir('helm-charts') {
-                  sh 'git push origin gh-pages'
+                  sh 'git push origin main'
                 }
               }
             }
