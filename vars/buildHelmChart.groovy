@@ -63,7 +63,7 @@ def call(body) {
           }
         }
 
-        if (env.BRANCH_NAME == "master") {
+        if (env.BRANCH_NAME == "master" || env.BRANCH_NAME == "main") {
           if (fileExists("${name}/release.config.cjs")) {
             stage('Release') {
               withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
@@ -128,7 +128,7 @@ def call(body) {
             }
           }
 
-          if (env.BRANCH_NAME == "master") {
+          if (env.BRANCH_NAME == "master" || env.BRANCH_NAME == "main") {
             stage('Deploy') {
               withCredentials([usernamePassword(credentialsId: 'github-halkeye', passwordVariable: 'github_psw', usernameVariable: 'github_usr')]) {
                 dir('helm-charts') {
